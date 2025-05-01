@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../common/custom/customButton.dart';
+import '../../controllers/LoginController.dart';
+import '../../services/EmailService.dart';
+import '../../widgets/custom/customButton.dart';
 import '../register/registerScreen.dart';
 import '../login/forgotPassScreen.dart';
 
@@ -9,8 +11,37 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   bool _obscurePassword = true; //ẩn mkhau
+
+  final  LoginController _loginController = LoginController();
+
+  void handleLogin() {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vui lòng nhập đầy đủ email và mật khẩu.')),
+      );
+      return;
+    }
+
+    _loginController.login(context, email, password);
+  }
+
+  void resetPassword(String email){
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if(!emailRegex.hasMatch(email)){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Email không hợp lệ!")),
+      );
+      return;
+    }
+    Navigator.push(context, MaterialPageRoute(builder: (_)=>ForgotPassScreen(emailAccount: email,)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,15 +88,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         alignment: Alignment.centerRight,
                         //forgot button
                         child: TextButton(
-                            onPressed: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => ForgotPassScreen()),);
-                            },
-                            child: const Text(
-                              "Forgot Password?",
-                              style: TextStyle(color: Colors.redAccent),
-                            ),
+                            onPressed: () => resetPassword(_emailController.text.trim()),
+                            child: const Text("Quên mật khẩu?",style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),)
                         ),
-                      ),
+                        ),
                       const SizedBox(height: 20,),
 
                       //button login
@@ -73,9 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           text: "Login",
                           textColor: Colors.white,
                           gradientColors: [Color(0xFFE53935), Color(0xFFFF7043)],
-                          onPressed: (){
-
-                          }
+                          onPressed: handleLogin
                       ),
 
                       const Spacer(),
@@ -91,39 +115,41 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildInputField(IconData icon, String hintText){
+  Widget _buildInputField(IconData icon, String hintText) {
     return TextField(
+      controller: _emailController,
+      keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: Colors.redAccent,),
+        prefixIcon: Icon(icon, color: Colors.redAccent),
         hintText: hintText,
         border: UnderlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFF3300))
-        )
+          borderSide: BorderSide(color: Color(0xFFFF3300)),
+        ),
       ),
     );
   }
 
-  Widget _buildPasswordField(){
+  Widget _buildPasswordField() {
     return TextField(
+      controller: _passwordController,
       obscureText: _obscurePassword,
       decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.lock, color: Colors.redAccent,),
+        prefixIcon: const Icon(Icons.lock, color: Colors.redAccent),
         suffixIcon: IconButton(
-            //mkhau bị ẩn thì off, k thì on
-            icon: Icon(
-                _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                color: Colors.grey,
-            ),
-            onPressed: (){
-              setState(() {
-                //đảo trạng thái
-                _obscurePassword = !_obscurePassword;
-              });
-            },
+          icon: Icon(
+            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+            color: Colors.grey,
+          ),
+          onPressed: () {
+            setState(() {
+              _obscurePassword = !_obscurePassword;
+            });
+          },
         ),
-          border: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFFFF3300))
-          )
+        hintText: "Enter your password",
+        border: UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFFFF3300)),
+        ),
       ),
     );
   }
@@ -132,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text("Don't have an account?"),
+        const Text("Chưa có tài khoản?"),
         TextButton(
            // handle event register
             onPressed: (){
@@ -141,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 MaterialPageRoute(builder: (context) => RegisterScreen())
               );
             }, 
-            child: const Text("Sign up",style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),))
+            child: const Text("Đăng ký",style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),))
       ],
     );
   }

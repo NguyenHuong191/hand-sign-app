@@ -6,6 +6,7 @@ class CustomButton extends StatelessWidget {
   final List<Color> gradientColors;
   final VoidCallback onPressed;
   final bool isOutlined;
+  final double width;
 
   const CustomButton({
     super.key,
@@ -14,12 +15,13 @@ class CustomButton extends StatelessWidget {
     required this.gradientColors,
     required this.onPressed,
     this.isOutlined = false,
+    this.width = 230,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 230,
+      width: width,
       height: 50,
       decoration: BoxDecoration(
         gradient: isOutlined ? null : LinearGradient(

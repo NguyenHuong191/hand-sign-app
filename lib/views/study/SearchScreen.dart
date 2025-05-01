@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../common/custom/CustomAppBar.dart';
-
-void main() {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: DictionaryScreen(),
-  ));
-}
+import '../../widgets/custom/CustomAppBar.dart';
 
 class DictionaryScreen extends StatelessWidget {
   final List<String> words = ["Hello", "House", "Love"];
