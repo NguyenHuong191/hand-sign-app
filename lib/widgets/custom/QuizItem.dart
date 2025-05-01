@@ -41,13 +41,13 @@ class QuizItem extends StatelessWidget {
             ),
             Row(
               children: [
-                Text(
+                (score == 100)
+                  ? Icon(Icons.check_circle, color: Colors.green, size: 24)
+                  : Text(
                   "$score%",
                   style: TextStyle(fontSize: 16),
                 ),
-                SizedBox(width: 10),
-                if (score > 0)
-                  Icon(Icons.check_circle, color: Colors.green, size: 24),
+                Icon(Icons.navigate_next)
               ],
             ),
           ],

@@ -24,7 +24,7 @@ class Answerquiz extends StatelessWidget {
             backgroundColor: color,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
-              side: BorderSide(color: Colors.black, width: 1),
+              side: BorderSide(color: Colors.grey, width: 1),
             ),
           ),
             onPressed: onPressed,
