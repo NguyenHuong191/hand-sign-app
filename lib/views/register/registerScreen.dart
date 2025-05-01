@@ -1,19 +1,45 @@
 import 'package:flutter/material.dart';
-import '../../common/custom/customButton.dart';
-
-// void main() {
-//   runApp(
-//     MaterialApp(debugShowCheckedModeBanner: false, home: RegisterScreen()),
-//   );
-// }
+import '../../controllers/RegisterController.dart';
+import '../login/login.dart';
+import '../../widgets/custom/customButton.dart';
 
 class RegisterScreen extends StatefulWidget {
+
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
+
+  final _usernameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _rePasswordController = TextEditingController();
+
+  void checkValidInfor(
+       String username,
+       String phone,
+       String email,
+       String password,
+       String rePass,
+      ) async{
+
+    final error = RegisterController.checkVailidInfor(username: username, phone: phone, email: email, password: password, rePass: rePass);
+
+    if (error != null) {
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+       return;
+    }
+
+    try{
+      await RegisterController.sendEmailVerify(context, username, phone, email, password);
+    }catch(e){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception', ''))));
+    }
+    // RegisterController.sendOTPVerification(context, username, email);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             const SizedBox(height: 200),
             const Text(
-              "CREATE YOUR ACCOUNT",
+              "TẠO TÀI KHOẢN",
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -55,26 +81,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    _buildInputField(Icons.person, "Full name"),
+                    _buildInputField(Icons.person, "Họ và tên", _usernameController),
                     const SizedBox(height: 20),
-                    _buildInputField(Icons.phone, "Phone"),
+                    _buildInputField(Icons.phone, "Số điện thoại", _phoneController),
                     const SizedBox(height: 20),
-                    _buildInputField(Icons.email, "Email"),
+                    _buildInputField(Icons.email, "Email", _emailController),
                     const SizedBox(height: 20),
-                    _buildPasswordField("Password"),
+                    _buildPasswordField("Mật khẩu", _passwordController),
                     const SizedBox(height: 20,),
-                    _buildPasswordField("Confirm Password"),
+                    _buildPasswordField("Xác nhận mật khẩu", _rePasswordController),
                     const SizedBox(height: 40,),
                     
                     //button
                     CustomButton(
-                        text: "Sign up", 
+                        text: "Đăng ký",
                         textColor: Colors.white, 
                         gradientColors: [Color(0xFFE53935), Color(0xFFFF7043)], 
                         onPressed: (){
-                          
+                          checkValidInfor(
+                              _usernameController.text,
+                              _phoneController.text,
+                              _emailController.text,
+                              _passwordController.text,
+                              _rePasswordController.text
+                          );
                         }
-                    )
+                    ),
+                    const SizedBox(height: 90,),
+                    _buildSigninText(),
                   ],
                 ),
               ),
@@ -85,8 +119,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildInputField(IconData icon, String hintText) {
+  Widget _buildInputField(IconData icon, String hintText, TextEditingController controller) {
     return TextField(
+      controller: controller,
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: Colors.redAccent),
         hintText: hintText,
@@ -97,9 +132,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildPasswordField(String hintText) {
+  Widget _buildPasswordField(String hintText, TextEditingController controller) {
     return TextField(
       obscureText: _obscurePassword,
+      controller: controller,
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.lock, color: Colors.redAccent),
         suffixIcon: IconButton(
@@ -118,6 +154,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
           borderSide: BorderSide(color: Colors.redAccent),
         ),
       ),
+    );
+  }
+
+  Widget _buildSigninText(){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text("Have an account?"),
+        TextButton(
+          // handle event register
+            onPressed: (){
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen())
+              );
+            },
+            child: const Text("Login",style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),))
+      ],
     );
   }
 }

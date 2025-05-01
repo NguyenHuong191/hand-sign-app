@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../common/custom/CustomAppBar.dart';
+import '../../widgets/custom/CustomAppBar.dart';
 
-void main() {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: AlphabetScreen(),
-  ));
-}
 
 class AlphabetScreen extends StatelessWidget{
 
