@@ -1,173 +1,188 @@
 import 'package:flutter/material.dart';
-import 'package:hand_sign/controllers/LoginController.dart';
-import 'package:hand_sign/controllers/QuizController.dart';
-import 'package:hand_sign/controllers/QuizListController.dart';
-import 'package:hand_sign/models/Users.dart';
-import 'package:hand_sign/models/quiz.dart';
-import 'package:hand_sign/views/login/login.dart';
-import 'package:hand_sign/views/quiz/CreateQuizPage.dart';
-import 'package:hand_sign/widgets/custom/DialogHelper.dart';
+import 'package:provider/provider.dart';
+
+import '../../controllers/QuizListController.dart';
+import '../../models/Users.dart';
+import '../../widgets/custom/DialogHelper.dart';
 import '../../widgets/custom/QuizItem.dart';
 import '../../widgets/custom/CustomAppBar.dart';
-import './QuizTest.dart'; // Đảm bảo đường dẫn đúng
+import '../login/login.dart';
+import './CreateQuizPage.dart';
+import './ManageQuiz.dart';
+import './QuizTest.dart';
+import '../../controllers/QuizResultController.dart';
 
-class QuizScreen extends StatefulWidget {
-  @override
-  _QuizScreenState createState() => _QuizScreenState();
-}
-
-class _QuizScreenState extends State<QuizScreen> {
-  String? _selectedType;
-  List<Quiz> _allQuizzes = [];
-  List<String> _quizTypes = [];
-  bool _isLoading = true;
-  bool _isTeacher = false;
-
-  final QuizListController _controller = QuizListController();
-  late Future<List<Quiz>> _quizFuture;
-
-  final List<Color> colorsOption = [
-    Color(0xFFDDF9FF), 
-    Color(0xFFFF7996), 
+class QuizScreen extends StatelessWidget {
+  final List<Color> colorsOption = const [
+    Color(0xFFDDF9FF),
+    Color(0xFFFF7996),
     Color(0xFFFFE8E3),
     Color(0xFFE4FFE8),
     Color(0xFFF5E4FF),
   ];
 
   @override
-  void initState() {
-    super.initState();
-    _loadData();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => QuizListController()..loadData(),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: CustomAppBar(title: "List quiz"),
+        body: Consumer<QuizListController>(
+          builder: (context, controller, _) {
+            if (controller.isLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
 
-    if (Users.currentUser?.role == 'teacher') {
-      _isTeacher = true;
-    }
-  }
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: DropdownButton<String>(
+                    value: controller.selectedType,
+                    hint: Text("All"),
+                    isExpanded: true,
+                    items: ['All', ...controller.quizTypes].map((type) {
+                      return DropdownMenuItem(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
+                    onChanged: controller.setSelectedType,
+                  ),
+                ),
+                Expanded(
+                  child: controller.filteredQuizzes.isEmpty
+                      ? Center(child: Text("Don't have any match!"))
+                      : ListView.builder(
+                       itemCount: controller.filteredQuizzes.length,
+                       itemBuilder: (context, index) {
+                       final quiz = controller.filteredQuizzes[index];
+                       final score = controller.resultScore[quiz.quizId] ?? 0;
 
-  Future<void> _loadData() async {
-    final quizzes = await _controller.fetchAllQuiz();
-    final types = await _controller.getQuizTypes();
-
-    setState(() {
-      _allQuizzes = quizzes;
-      _quizTypes = types;
-      _isLoading = false;
-    });
-  }
-
-  List<Quiz> get _filteredQuizzes {
-    if (_selectedType == null || _selectedType == 'Tất cả') {
-      return _allQuizzes;
-    }
-    return _allQuizzes
-        .where((quiz) => quiz.typeOfQuiz == _selectedType)
-        .toList();
-  }
-
-  void _checkUserLogin(quizId){
-    final user = Users.currentUser;
-
-    if(user == null){
-      DialogHelper.showConfirmDialog(
-          context: context,
-          title: 'Bạn chưa đăng nhập',
-          message: 'Bạn có muốn đăng nhập để lưu tiến độ bài làm không?',
-          confirmText: 'Đăng nhập',
-          // nếu chọn đăng nhập
-          onConfirm: (){
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => LoginScreen()
-              ),
+                       return QuizItem(
+                        title: quiz.title,
+                        score: score,
+                        color: colorsOption[index % colorsOption.length],
+                        onPressed: () => _checkUserLogin(context, quiz.quizId),
+                      );
+                    },
+                  ),
+                ),
+              ],
             );
           },
-          // nếu k chọn đăng nhập
-          onCancel: (){
+        ),
+        floatingActionButton: Consumer<QuizListController>(
+          builder: (context, controller, _) {
+            if (!controller.isTeacher) return SizedBox.shrink();
+            return Column(
+                 mainAxisSize: MainAxisSize.min,
+                 children: [
+                   FloatingActionButton(
+                   heroTag: 'fab_manage',
+                   backgroundColor: Color(0xFFFFD1BF),
+                   child: Icon(Icons.note, color: Colors.black),
+                   onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ManageQuizScreen(idUser: Users.currentUser!.id),
+                      ),
+                    );
+                    if (result == true) {
+                      controller.loadData();
+                    }
+                  },
+                ),
+                SizedBox(height: 12),
+                FloatingActionButton(
+                  heroTag: 'fab_add',
+                  backgroundColor: Color(0xFFFFD1BF),
+                  child: Icon(Icons.add, color: Colors.black),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => CreateQuizPage()),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void _checkUserLogin(BuildContext context, String quizId) {
+    final controller = Provider.of<QuizListController>(context, listen: false);
+    final user = Users.currentUser;
+
+    if (user == null) {
+      DialogHelper.showConfirmDialog(
+        context: context,
+        title: 'You are not logged in.',
+        message: 'Do you want to log in to save your progress?',
+        confirmText: 'Login',
+        onConfirm: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LoginScreen())),
+        onCancel: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => QuizTest(
+              quizId: quizId,
+              saveProgress: false,
+            ),
+          ),
+        ),
+      );
+    } else {
+      final score = controller.resultScore[quizId] ?? 0;
+      if (score > 0) {
+        DialogHelper.showConfirmDialog(
+          context: context,
+          title: "Retest Quiz?",
+          message: "You have already taken this quiz. Want to take it again?",
+          confirmText: "Take again",
+          onConfirm: () async {
+            final quizResultId = await QuizResultController().getQuizResultId(quizId, user.id);
+            if (quizResultId != null) {
+              await QuizResultController().deleteQuizResult(quizResultId);
+              _takeQuiz(context, quizId, controller);
+            }
+          },
+          onCancel: () async {
+            final quizResultId = await QuizResultController().getQuizResultId(quizId, user.id);
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => QuizTest(
                   quizId: quizId,
-                  saveProgress: false, // truyền flag để không lưu tiến độ
+                  quizResultId: quizResultId,
+                  isViewQuizResult: true,
                 ),
               ),
             );
-          }
-      );
-      // nếu user đã đăng nhập
-    }else{
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => QuizTest(
-            quizId: quizId,
-            saveProgress: true, // người đã đăng nhập thì lưu
-          ),
-        ),
-      );
+          },
+        );
+      } else {
+        _takeQuiz(context, quizId, controller);
+      }
     }
   }
 
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: "Danh sách quiz"),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: DropdownButton<String>(
-              value: _selectedType,
-              hint: Text("Chọn chủ đề"),
-              isExpanded: true,
-              items: ['Tất cả', ..._quizTypes].map((type) {
-                return DropdownMenuItem(
-                  value: type,
-                  child: Text(type),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedType = value;
-                });
-              },
-            ),
-          ),
-          Expanded(
-            child: _filteredQuizzes.isEmpty
-                ? Center(child: Text("Không có quiz nào phù hợp"))
-                : ListView.builder(
-              itemCount: _filteredQuizzes.length,
-              itemBuilder: (context, index) {
-                final quiz = _filteredQuizzes[index];
-                return QuizItem(
-                  title: quiz.title,
-                  score: 0,
-                  color: colorsOption[index % colorsOption.length],
-                  onPressed: () => _checkUserLogin(quiz.quizId),
-                );
-              },
-            ),
-          ),
-        ],
+  void _takeQuiz(BuildContext context, String quizId, QuizListController controller) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QuizTest(
+          quizId: quizId,
+          saveProgress: true,
+        ),
       ),
-      floatingActionButton: _isTeacher
-          ? FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => CreateQuizPage()),
-              );
-            },
-            backgroundColor: Color(0xFFFFD1BF),
-            child: const Icon(Icons.add, color: Colors.black),
-      )
-          : null,
     );
+    if (result == true) {
+      controller.loadData();
+    }
   }
 }

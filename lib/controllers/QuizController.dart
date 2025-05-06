@@ -1,12 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:hand_sign/models/question.dart';
+import '../../models/question.dart';
 import '../models/quiz.dart';
 import '../services/ImgUploadService.dart';
 import '../services/QuizService.dart';
 
 class QuizController extends ChangeNotifier{
-  final PageController _pageController = PageController();
   final ImgUploadService _imgUploadService;
   final QuizService _quizService;
 
@@ -42,7 +41,7 @@ class QuizController extends ChangeNotifier{
     final q = questions[index];
     if (q.questionText.trim().isEmpty) return 'Vui lòng nhập nội dung câu hỏi';
     if (q.options.any((o) => o.trim().isEmpty)) return 'Vui lòng nhập đầy đủ các đáp án';
-    if (q.selectedImageFile == null) return 'Vui lòng chọn ảnh minh hoạ';
+    if (q.selectedMediaFile == null) return 'Vui lòng chọn ảnh/video minh hoạ';
     if (q.correctAnswerIndex < 0 || q.correctAnswerIndex >= 4) return 'Vui lòng chọn đáp án đúng';
 
     return '';
@@ -62,15 +61,16 @@ class QuizController extends ChangeNotifier{
     if (user == null) return 'Bạn cần phải đăng nhập!';
 
     for(var q in questions){
-      String imgURL="";
+      String mediaUrl = '';
+      String? mediaType = q.mediaType;
 
-      if (q.selectedImageFile != null) {
+      if (q.selectedMediaFile != null && q.selectedMediaName != null) {
         final uploadedUrl = await _imgUploadService.uploadImg(
-          q.selectedImageFile!,
-          q.selectedImageName ?? 'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          q.selectedMediaFile!,
+          q.selectedMediaName!,
         );
-        if (uploadedUrl == null) return "Lỗi khi upload ảnh.";
-        imgURL = uploadedUrl;
+        if (uploadedUrl == null) return "Lỗi khi upload media.";
+        mediaUrl = uploadedUrl;
       }
 
       finalQuestions.add(Question(
@@ -78,7 +78,8 @@ class QuizController extends ChangeNotifier{
         questionText: q.questionText,
         options: q.options,
         correctAnswerIndex: q.correctAnswerIndex,
-        imgURL: imgURL,
+        mediaUrl: mediaUrl,
+        mediaType: mediaType,
       ));
     }
     final quiz = Quiz(

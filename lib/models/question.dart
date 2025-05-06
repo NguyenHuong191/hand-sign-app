@@ -5,19 +5,21 @@ class Question{
   String questionText;
   int correctAnswerIndex;
   List<String> options;
-  String imgURL;
+  String mediaUrl;
 
-  Uint8List? selectedImageFile;
-  String? selectedImageName;
+  Uint8List? selectedMediaFile;
+  String? selectedMediaName;
+  String? mediaType;
 
   Question({
     required this.questionId,
     required this.questionText,
     required this.correctAnswerIndex,
     required this.options,
-    this.imgURL = '',
-    this.selectedImageFile,
-    this.selectedImageName,
+    this.mediaUrl = '',
+    this.selectedMediaFile,
+    this.selectedMediaName,
+    this.mediaType,
 });
 
   factory Question.fromMap(Map<String, dynamic> map,String id){
@@ -26,7 +28,8 @@ class Question{
         questionText: map['questionText'],
         correctAnswerIndex: map['correctAnswer'],
         options: List<String>.from(map['options']),
-        imgURL: map['imgURL'],
+        mediaUrl: map['mediaUrl'],
+        mediaType: map['mediaType']
     );
   }
 
@@ -36,7 +39,8 @@ class Question{
       'questionText': questionText,
       'options': options,
       'correctAnswer': correctAnswerIndex,
-      'imgURL': imgURL,
+      'mediaUrl': mediaUrl,
+      'mediaType': mediaType,
     };
   }
 }

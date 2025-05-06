@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             const SizedBox(height: 180,),
             const Text(
-              "HI, PLEASE LOGIN!",
+              "ĐĂNG NHẬP!",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 22,
@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      _buildInputField(Icons.phone, "Enter your email"),
+                      _buildInputField(Icons.phone, "Nhập email"),
                       const SizedBox(height: 20,),
                       _buildPasswordField(),
                       Align(
@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       //button login
                       CustomButton(
-                          text: "Login",
+                          text: "Đăng nhập",
                           textColor: Colors.white,
                           gradientColors: [Color(0xFFE53935), Color(0xFFFF7043)],
                           onPressed: handleLogin
@@ -146,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
             });
           },
         ),
-        hintText: "Enter your password",
+        hintText: "Nhập mật khẩu",
         border: UnderlineInputBorder(
           borderSide: BorderSide(color: Color(0xFFFF3300)),
         ),

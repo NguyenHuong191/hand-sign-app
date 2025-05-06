@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final VoidCallback? onBack;
+  final bool showBackButton;
 
   const CustomAppBar({
     Key? key,
     required this.title,
     this.onBack,
+    this.showBackButton = true,
   }) : super(key: key);
 
   @override
@@ -15,8 +17,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Color(0xFFFFD1BF),
       elevation: 0,
-      leading: GestureDetector(
-        onTap: onBack ?? () => Navigator.pop(context),
+      automaticallyImplyLeading: false,
+      leading: showBackButton ? GestureDetector(
+        onTap: onBack ?? () => Navigator.pop(context, true),
         child: Padding(
           padding: EdgeInsets.all(10),
           child: Image.asset(
@@ -25,7 +28,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             height: 30,
           ),
         ),
-      ),
+      )
+      :null,
       title: Text(
         title,
         style: TextStyle(

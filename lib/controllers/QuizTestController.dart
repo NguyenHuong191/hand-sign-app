@@ -5,17 +5,21 @@ class QuizTestController {
   final QuizService _quizService = QuizService();
   int correctCount = 0;
 
-  //kiểm tra đáp án đã chọn
+  Future<String> getQuizTitle(String quizId) async {
+    return await _quizService.getQuizTitle(quizId);
+  }
+
+  /// kiểm tra đáp án đã chọn
   bool checkAnswer(int selected, int correct) {
     final isCorrect = selected == correct;
     if (isCorrect) correctCount++;
     return isCorrect;
   }
 
-  //lấy số lượng câu đúng của ng dùng
+  /// lấy số lượng câu đúng của ng dùng
   int getCorrectCount() => correctCount;
 
-  // tinh diem
+  /// tinh diem
   Map<String, dynamic> calculateScore({
     required List<Question> questions,
     required Map<int, int> selectedAnswers,
@@ -51,12 +55,13 @@ class QuizTestController {
   }
 
 
+  /// lưu kết quả quiz vào collection quiz result
   Future<void> submitQuizResult({
     required String quizId,
     required String userId,
     required List<Question> questions,
     required Map<int, int> selectedAnswers,
-   }) async{
+  }) async{
     final result = calculateScore(
       questions: questions,
       selectedAnswers: selectedAnswers,
@@ -69,5 +74,5 @@ class QuizTestController {
       totalAnswer: selectedAnswers.length,
       answers: result['answers'],
     );
-     }
+  }
 }

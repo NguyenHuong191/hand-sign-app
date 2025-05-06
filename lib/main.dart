@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hand_sign/views/dictionary/SearchScreen.dart';
 import 'package:hand_sign/views/login/login.dart';
 import 'package:hand_sign/views/quiz/QuizScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 
 void main() async {

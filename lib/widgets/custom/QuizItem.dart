@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class QuizItem extends StatelessWidget {
   final String title;
-  final int score;
+  final num score;
   final Color color;
   final VoidCallback onPressed;
 
@@ -41,15 +41,23 @@ class QuizItem extends StatelessWidget {
             ),
             Row(
               children: [
-                (score == 100)
-                  ? Icon(Icons.check_circle, color: Colors.green, size: 24)
-                  : Text(
-                  "$score%",
-                  style: TextStyle(fontSize: 16),
-                ),
-                Icon(Icons.navigate_next)
+                if (score > 0) ...[
+                  Icon(Icons.check_circle, color: Colors.green, size: 24),
+                  SizedBox(width: 8),
+                  Text(
+                    "Score: $score/10",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ] else
+                  Text(
+                    "Score: $score/10",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                SizedBox(width: 8),
+                Icon(Icons.navigate_next),
               ],
-            ),
+            )
+
           ],
         ),
       ),
